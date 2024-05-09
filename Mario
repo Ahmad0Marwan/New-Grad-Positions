@@ -1,0 +1,74 @@
+# platformer_game.py
+
+import pygame
+import sys
+
+# Initialize Pygame
+pygame.init()
+
+# Set up some constants
+WIDTH, HEIGHT = 640, 480
+PLAYER_SIZE = 50
+PLAYER_SPEED = 5
+JUMP_HEIGHT = 20
+GRAVITY = 1
+
+# Set up some colors
+WHITE = (255, 255, 255)
+RED = (255, 0, 0)
+
+# Set up the display
+screen = pygame.display.set_mode((WIDTH, HEIGHT))
+
+# Set up the player
+player_rect = pygame.Rect(WIDTH / 2, HEIGHT / 2, PLAYER_SIZE, PLAYER_SIZE)
+player_vy = 0
+
+# Set up the platforms
+platforms = [
+    pygame.Rect(0, HEIGHT - 50, WIDTH, 50),  # ground
+    pygame.Rect(WIDTH / 2, HEIGHT / 2, 200, 20),  # middle platform
+]
+
+# Game loop
+while True:
+    # Handle events
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            pygame.quit()
+            sys.exit()
+
+    # Get a list of all keys currently being pressed down
+    keys = pygame.key.get_pressed()
+
+    # Move the player
+    if keys[pygame.K_LEFT]:
+        player_rect.x -= PLAYER_SPEED
+    if keys[pygame.K_RIGHT]:
+        player_rect.x += PLAYER_SPEED
+    if keys[pygame.K_UP] and player_rect.bottom == HEIGHT - 50:
+        player_vy = -JUMP_HEIGHT
+
+    # Apply gravity
+    player_vy += GRAVITY
+    player_rect.y += player_vy
+
+    # Collision with platforms
+    for platform in platforms:
+        if player_rect.colliderect(platform):
+            if player_vy > 0:
+                player_rect.bottom = platform.top
+                player_vy = 0
+            elif player_vy < 0:
+                player_rect.top = platform.bottom
+                player_vy = 0
+
+    # Draw everything
+    screen.fill(WHITE)
+    pygame.draw.rect(screen, RED, player_rect)
+    for platform in platforms:
+        pygame.draw.rect(screen, RED, platform)
+    pygame.display.flip()
+
+    # Cap the frame rate
+    pygame.time.delay(1000 // 60)
