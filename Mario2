@@ -1,0 +1,105 @@
+import sys
+import pygame
+
+pygame.init()
+
+# Set up some constants
+WIDTH, HEIGHT = 800, 600
+PLAYER_SIZE = 32
+GRAVITY = 0.5
+JUMP_HEIGHT = -12
+# Set up some colors
+WHITE = (255, 255, 255)
+RED = (255, 0, 0)
+GREEN = (0, 255, 0)
+
+# Create the game screen
+screen = pygame.display.set_mode((WIDTH, HEIGHT))
+
+# Create a player object
+player = {
+    "x": WIDTH // 2,
+    "y": HEIGHT // 2,
+    "width": PLAYER_SIZE,
+    "height": PLAYER_SIZE,
+    "speed": 4,
+    "gravity": GRAVITY,
+    "jump_height": JUMP_HEIGHT,
+    "velocity": 0,
+    "is_jumping": False,
+}
+
+# Create some platforms
+platforms = [
+    {"x": 100, "y": 500, "width": 200, "height": 20},
+    {"x": 400, "y": 400, "width": 200, "height": 20},
+]
+
+# Create a function to draw the player
+def draw_player():
+    pygame.draw.rect(screen, RED, (player["x"], player["y"], player["width"], player["height"]))
+
+# Create a function to draw the platforms
+def draw_platforms():
+    for platform in platforms:
+        pygame.draw.rect(screen, GREEN, (platform["x"], platform["y"], platform["width"], platform["height"]))
+
+# Create a function to update the player
+def update_player():
+    if player["is_jumping"]:
+        player["velocity"] += player["gravity"]
+        player["y"] += player["velocity"]
+        if player["y"] + player["height"] > HEIGHT:
+            player["y"] = HEIGHT - player["height"]
+            player["is_jumping"] = False
+            player["velocity"] = 0
+    else:
+        if keys[pygame.K_UP]:
+            player["is_jumping"] = True
+
+    if keys[pygame.K_LEFT] and player["x"] > 0:
+        player["x"] -= player["speed"]
+    if keys[pygame.K_RIGHT] and player["x"] + player["width"] < WIDTH:
+        player["x"] += player["speed"]
+
+# Create a function to check collisions
+def check_collisions():
+    for platform in platforms:
+        if (
+            player["x"] < platform["x"] + platform["width"] and
+            player["x"] + player["width"] > platform["x"] and
+            player["y"] < platform["y"] + platform["height"] and
+            player["y"] + player["height"] > platform["y"]
+        ):
+            player["is_jumping"] = False
+            player["velocity"] = 0
+            player["y"] = platform["y"] - player["height"]
+
+# Create a game loop
+while True:
+    # Handle events
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            pygame.quit()
+            sys.exit()
+
+    # Update the player
+    update_player()
+
+    # Check collisions
+    check_collisions()
+
+    # Fill the screen with white
+    screen.fill(WHITE)
+
+    # Draw the platforms
+    draw_platforms()
+
+    # Draw the player
+    draw_player()
+
+    # Flip the display
+    pygame.display.flip()
+
+    # Cap the frame rate
+    pygame.time.Clock().tick(60)
